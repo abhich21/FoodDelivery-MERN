@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 
+
 const UserSchema = new mongoose.Schema({
     name : {type: String, required:true, unique:false},
     email: {
@@ -14,6 +15,26 @@ const UserSchema = new mongoose.Schema({
       img: {
         type: String,
         default: null,
+      },
+      favourites: {
+        type: [mongoose.Schema.Types.ObjectId],
+        ref: "Food",
+        default: [],
+      },
+      orders: {
+        type: [mongoose.Schema.Types.ObjectId],
+        ref: "Orders",
+        default: [],
+      },
+      cart: {
+        type: [
+          {
+            product: { type: mongoose.Schema.Types.ObjectId, ref: "Food" },
+            quantity: { type: Number, default: 1 },
+          },
+        ],
+  
+        default: [],
       },
     },
     {
