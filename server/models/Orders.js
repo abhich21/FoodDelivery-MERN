@@ -32,25 +32,6 @@ const OrderSchema = new mongoose.Schema(
       ],
       required: true,
     },
-    favourites: {
-        type: [mongoose.Schema.Types.ObjectId],
-        ref: "Food",
-        default: [],
-      },
-      orders: {
-        type: [mongoose.Schema.Types.ObjectId],
-        ref: "Orders",
-        default: [],
-      },
-      cart: {
-        type: [
-          {
-            product: { type: mongoose.Schema.Types.ObjectId, ref: "Food" },
-            quantity: { type: Number, default: 1 },
-          },
-        ],
-        default: [],
-      },
   },
   { timestamps: true }
 );
