@@ -131,7 +131,7 @@ const MobileMenu = styled.ul`
 `;
 
 
-function Navbar() {
+const Navbar = ({setOpenAuth, openAuth}) => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -177,6 +177,24 @@ function Navbar() {
                 <Navlink to="/contact" onClick={() => setIsOpen(false)}>
                   Contact
                 </Navlink>
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "12px",
+                  }}
+                >
+                  <Button
+                    text="Sign Up"
+                    outlined
+                    small
+                    onClick={() => setOpenAuth(true)}
+                  />
+                  <Button
+                    text="Sign In"
+                    small
+                    onClick={() => setOpenAuth(true)}
+                  />
+                </div>
               </MobileMenu>
             )}
             <ButtonContainer>
@@ -191,7 +209,7 @@ function Navbar() {
                   sx={{ color: "inherit", fontSize: "28px" }}
                 />
               </Navlink>
-              <Button text='Sign In' small />
+              <Button text='Sign In' small onClick={()=> setOpenAuth(true)} />
             </ButtonContainer>
         </NavContainer>
     </Nav>
