@@ -7,7 +7,8 @@ import {
   FavoriteRounded,
   ShoppingBagOutlined,
   ShoppingCart,
-} from "@mui/icons-material"
+} from "@mui/icons-material";
+import { useNavigate } from "react-router-dom";
 
 const Card = styled.div`
   width: 300px;
@@ -130,7 +131,7 @@ const ProductsCard = () => {
   return (
     <Card>
       <Top>
-        <Image src="https://media.istockphoto.com/id/1309352410/photo/cheeseburger-with-tomato-and-lettuce-on-wooden-board.jpg?s=612x612&w=0&k=20&c=lfsA0dHDMQdam2M1yvva0_RXfjAyp4gyLtx4YUJmXgg=" />
+        <Image src="https://media.istockphoto.com/id/520410807/photo/cheeseburger.jpg?s=612x612&w=0&k=20&c=fG_OrCzR5HkJGI8RXBk76NwxxTasMb1qpTVlEM0oyg4=" />
         <Menu>
           <MenuItem>
             <FavoriteRounded sx={{ fontSize: "20px", color: "red" }} />
