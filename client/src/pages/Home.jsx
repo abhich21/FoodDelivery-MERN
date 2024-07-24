@@ -4,6 +4,8 @@ import { category } from "../utils/data";
 import HeaderImage from "../utils/images/Header.png";
 import ProductCategoryCard from "../components/cards/ProductCategoryCard";
 import ProductsCard from "../components/cards/ProductsCard";
+import { getAllProducts } from '../api';
+import { CircularProgress } from "@mui/material";
 
 const Container = styled.div`
   padding: 20px 30px;
@@ -48,6 +50,20 @@ const CardWrapper = styled.div`
 `;
 
 const Home = () => {
+  const [loading, setLoading] = useState(false);
+  const [products, setProducts] = useState([]);
+
+  const getProducts = async () => {
+    setLoading(true);
+    await getAllProducts().then((res) => {
+      setProducts(res.data);
+      setLoading(false);
+    });
+  };
+
+  useEffect(()=>{
+    getProducts();
+  },[])
   return (
     <Container>
       <Section>
@@ -63,11 +79,15 @@ const Home = () => {
       </Section>
       <Section>
         <Title>Most Popular</Title>
-        <CardWrapper>
-          {category.map((category) => (
-            <ProductsCard />
+        {loading ? (
+          <CircularProgress />
+        ) : (
+          <CardWrapper>
+          {products.map((product) => (
+            <ProductsCard product={product} />
           ))}
         </CardWrapper>
+        )}
       </Section>
     </Container>
   )
