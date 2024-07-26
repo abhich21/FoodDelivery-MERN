@@ -2,6 +2,10 @@ import React, { useState } from 'react'
 import styled from 'styled-components';
 import TextInput from './TextInput';
 import Button from './Button';
+import { useDispatch } from "react-redux";
+import { UserSignIn } from "../api";
+import { loginSuccess } from "../redux/reducers/UserSlice";
+import { openSnackbar } from "../redux/reducers/SnackbarSlice";
 
 const Container = styled.div`
   width: 100%;
@@ -38,6 +42,46 @@ const SignIn = ({ setOpenAuth }) => {
   const [buttonDisabled, setButtonDisabled] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const dispatch = useDispatch();
+
+  const validateInputs = () => {
+    if (!email || !password) {
+      alert("Please fill in all fields");
+      return false;
+    }
+    return true;
+  };
+
+  const handelSignIn = async () => {
+    setLoading(true);
+    setButtonDisabled(true);
+    if (validateInputs()) {
+      await UserSignIn({ email, password })
+        .then((res) => {
+          dispatch(loginSuccess(res.data));
+          dispatch(
+            openSnackbar({
+              message: "Login Successful",
+              severity: "success",
+            })
+          );
+          setLoading(false);
+          setButtonDisabled(false);
+          setOpenAuth(false);
+        })
+        .catch((err) => {
+          setLoading(false);
+          setButtonDisabled(false);
+          dispatch(
+            openSnackbar({
+              message: err.message,
+              severity: "error",
+            })
+          );
+        });
+    }
+  };
+
   return (
     <Container>
       <div>
@@ -48,23 +92,23 @@ const SignIn = ({ setOpenAuth }) => {
         <TextInput
           label="Email Address"
           placeholder="Enter your email address"
-          // value={email}
-          // handelChange={(e) => setEmail(e.target.value)}
+          value={email}
+          handelChange={(e) => setEmail(e.target.value)}
         />
         <TextInput
           label="Password"
           placeholder="Enter your password"
-          // password
-          // value={password}
-          // handelChange={(e) => setPassword(e.target.value)}
+          password
+          value={password}
+          handelChange={(e) => setPassword(e.target.value)}
         />
 
         <TextButton>Forgot Password?</TextButton>
         <Button
           text="Sign In"
-          // onClick={handelSignIn}
-          // isLoading={loading}
-          // isDisabled={buttonDisabled}
+          onClick={handelSignIn}
+          isLoading={loading}
+          isDisabled={buttonDisabled}
         />
       </div>
     </Container>
