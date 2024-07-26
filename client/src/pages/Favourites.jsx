@@ -1,6 +1,7 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import styled from "styled-components";
 import ProductsCard from "../components/cards/ProductsCard";
+import {getFavourite} from "../api"
 import { CircularProgress } from "@mui/material";
 
 
@@ -43,16 +44,35 @@ const CardWrapper = styled.div`
 `;
 
 const Favourites = () => {
+  const [loading, setLoading] = useState(false);
+  const [products, setProducts] = useState([]);
+
+  const getProducts = async () => {
+    setLoading(true);
+    const token = localStorage.getItem("foodeli-app-token");
+    await getFavourite(token).then((res) => {
+      setProducts(res.data);
+      setLoading(false);
+    });
+  };
+
+  useEffect(() => {
+    getProducts();
+  }, []);
   return (
     <Container>
       <Section>
         <Title>Your Favorites</Title>
         <CardWrapper>
-          <ProductsCard/>
-          <ProductsCard/>
-          <ProductsCard/>
-          <ProductsCard/>
-          <ProductsCard/>
+        {loading ? (
+          <CircularProgress />
+        ) : (
+          <>
+            {products.map((product) => (
+              <ProductsCard product={product} />
+            ))}
+          </>
+        )}
         </CardWrapper>
       </Section>
     </Container>
