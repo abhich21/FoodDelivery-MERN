@@ -9,6 +9,9 @@ import {
   ShoppingCartOutlined,
 } from "@mui/icons-material";
 import Button from './Button';
+import { Avatar } from "@mui/material";
+import { useDispatch } from "react-redux";
+import { logout } from "../redux/reducers/UserSlice";
 
 const Nav = styled.div`
   background-color: ${({ theme }) => theme.bg};
@@ -130,9 +133,22 @@ const MobileMenu = styled.ul`
   z-index: ${({ isOpen }) => (isOpen ? "1000" : "-1000")};
 `;
 
+const TextButton = styled.span`
+  text-align: end;
+  color: ${({ theme }) => theme.secondary};
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  font-weight: 600;
+  &:hover {
+    color: ${({ theme }) => theme.primary};
+  }
+`;
 
-const Navbar = ({setOpenAuth, openAuth}) => {
+
+const Navbar = ({setOpenAuth, openAuth, currentUser}) => {
   const [isOpen, setIsOpen] = useState(false);
+  const dispatch = useDispatch();
 
   return (
     <Nav>
@@ -154,6 +170,9 @@ const Navbar = ({setOpenAuth, openAuth}) => {
               <Navlink to="/cart">
                 <ShoppingCartOutlined sx={{ color: "inherit", fontSize: "28px" }} />
               </Navlink>
+              {currentUser && (
+                <Avatar src={currentUser?.img}>{currentUser?.name[0]}</Avatar>
+              )}
             </MobileIcons>
 
             <NavItems>
@@ -177,39 +196,57 @@ const Navbar = ({setOpenAuth, openAuth}) => {
                 <Navlink to="/contact" onClick={() => setIsOpen(false)}>
                   Contact
                 </Navlink>
-                <div
-                  style={{
-                    display: "flex",
-                    gap: "12px",
-                  }}
-                >
-                  <Button
-                    text="Sign Up"
-                    outlined
-                    small
-                    onClick={() => setOpenAuth(true)}
-                  />
-                  <Button
-                    text="Sign In"
-                    small
-                    onClick={() => setOpenAuth(true)}
-                  />
-                </div>
+                {currentUser ? (
+                  <>
+                    <TextButton onClick={()=> dispatch(logout())}>
+                      Logout
+                    </TextButton>
+                  </>
+                ) : (
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: "12px",
+                    }}
+                  >
+                    <Button
+                      text="Sign Up"
+                      outlined
+                      small
+                      onClick={() => setOpenAuth(true)}
+                    />
+                    <Button
+                      text="Sign In"
+                      small
+                      onClick={() => setOpenAuth(true)}
+                    />
+                  </div>
+                )}
+                
               </MobileMenu>
             )}
             <ButtonContainer>
               <Navlink to='/search'>
                 <SearchRounded sx={{ color: "inherit", fontSize: "30px" }}/>
               </Navlink>
-              <Navlink to="/favorite">
-                <FavoriteBorder sx={{ color: "inherit", fontSize: "28px" }} />
-              </Navlink>
-              <Navlink to="/cart">
-                <ShoppingCartOutlined
-                  sx={{ color: "inherit", fontSize: "28px" }}
-                />
-              </Navlink>
-              <Button text='Sign In' small onClick={()=> setOpenAuth(true)} />
+              {currentUser ? (
+                <>
+                  <Navlink to="/favorite">
+                    <FavoriteBorder sx={{ color: "inherit", fontSize: "28px" }} />
+                  </Navlink>
+                  <Navlink to="/cart">
+                    <ShoppingCartOutlined
+                      sx={{ color: "inherit", fontSize: "28px" }}
+                    />
+                  </Navlink>
+                  <Avatar src={currentUser?.img}>{currentUser?.name[0]}</Avatar>
+                  <TextButton onClick={() => dispatch(logout())}>Logout</TextButton>
+                </>
+              ) : (
+                <>
+                  <Button text="Sign In" small onClick={() => setOpenAuth(true)} />
+                </>
+              )}
             </ButtonContainer>
         </NavContainer>
     </Nav>
