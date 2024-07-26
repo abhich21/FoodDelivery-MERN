@@ -1,8 +1,9 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import styled from "styled-components";
 import ProductCard from "../components/cards/ProductsCard";
 import { filter } from "../utils/data";
 import { CircularProgress, Slider } from "@mui/material";
+import { getAllProducts } from "../api";
 
 
 const Container = styled.div`
@@ -82,6 +83,30 @@ const Selectableitem = styled.div`
   `}
 `;
 const FoodListing = () => {
+  const [loading, setLoading] = useState(false);
+  const [products, setProducts] = useState([]);
+  const [priceRange, setPriceRange] = useState([0, 1000]); // Default price range
+  const [selectedCategories, setSelectedCategories] = useState([]); // Default selected categories
+
+  const getFilteredProductsData = async () => {
+    setLoading(true);
+    // Call the API function for filtered products
+    await getAllProducts(
+      selectedCategories.length > 0
+        ? `minPrice=${priceRange[0]}&maxPrice=${
+            priceRange[1]
+          }&categories=${selectedCategories.join(",")}`
+        : `minPrice=${priceRange[0]}&maxPrice=${priceRange[1]}`
+    ).then((res) => {
+      setProducts(res.data);
+      setLoading(false);
+    });
+  };
+
+  useEffect(() => {
+    getFilteredProductsData();
+  }, [priceRange, selectedCategories]);
+
   return (
     <Container>
       <Filters>
@@ -92,19 +117,33 @@ const FoodListing = () => {
               {filters.value === "price" ? (
                 <Slider
                   aria-label='Price'
-                  // defaultValue={priceRange}
+                  defaultValue={priceRange}
                   min={0}
                   max={1000}
                   valueLabelDisplay='auto'
                   marks={[
-                    {value: 0, label:'$0'},
-                    {value:1000, label:'$1000'},
+                    {value: 0, label:'₹0'},
+                    {value:1000, label:'₹1000'},
                   ]}
+                  onChange={(e, newValue) => setPriceRange(newValue)}
                 />
               ) : filters.value === "category" ? (
                 <Item>
                   {filters.items.map((item) => (
-                    <Selectableitem selected>{item}</Selectableitem>
+                    <Selectableitem
+                      key={item}
+                      selected={selectedCategories.includes(item)}
+                      onClick={() =>
+                        setSelectedCategories((prevCategories) =>
+                          prevCategories.includes(item)
+                            ? prevCategories.filter(
+                                (category) => category !== item
+                              )
+                            : [...prevCategories, item]
+                        )
+                      }
+                    >
+                      {item}</Selectableitem>
                   ))}
                 </Item>
               ) : null}
@@ -114,10 +153,15 @@ const FoodListing = () => {
       </Filters>
       <Products>
         <CardWrapper>
-          <ProductCard />
-          <ProductCard />
-          <ProductCard />
-
+        {loading ? (
+            <CircularProgress />
+          ) : (
+            <>
+              {products.map((product) => (
+                <ProductCard key={product._id} product={product} />
+              ))}
+            </>
+          )}
         </CardWrapper>
       </Products>
     </Container>
