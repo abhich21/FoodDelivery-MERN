@@ -9,6 +9,14 @@ import {
   ShoppingCart,
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
+import {
+  addToFavourite,
+  deleteFromFavourite,
+  getFavourite,
+  addToCart,
+} from "../../api";
+import { useDispatch } from "react-redux";
+import { openSnackbar } from "../../redux/reducers/SnackbarSlice";
 
 const Card = styled.div`
   width: 300px;
@@ -127,28 +135,129 @@ const Span = styled.div`
   text-decoration-color: ${({ theme }) => theme.text_secondary + 50};
 `;
 
-const ProductsCard = () => {
+const ProductsCard = ({ product }) => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const [favorite, setFavorite] = useState(false);
+  const [favoriteLoading, setFavoriteLoading] = useState(false);
+
+  const addFavourite = async () => {
+    setFavoriteLoading(true);
+    const token = localStorage.getItem("foodeli-app-token");
+    await addToFavourite(token, { productId: product?._id })
+      .then((res) => {
+        setFavorite(true);
+        setFavoriteLoading(false);
+      })
+      .catch((err) => {
+        setFavoriteLoading(false);
+        console.log(err);
+        dispatch(
+          openSnackbar({
+            message: err.response.data.message,
+            severity: "error",
+          })
+        );
+      });
+  };
+
+  const removeFavourite = async () => {
+    setFavoriteLoading(true);
+    const token = localStorage.getItem("foodeli-app-token");
+    await deleteFromFavourite(token, { productId: product?._id })
+      .then((res) => {
+        setFavorite(false);
+        setFavoriteLoading(false);
+      })
+      .catch((err) => {
+        setFavoriteLoading(false);
+        dispatch(
+          openSnackbar({
+            message: err.response.data.message,
+            severity: "error",
+          })
+        );
+      });
+  };
+
+  const checkFavorite = async () => {
+    setFavoriteLoading(true);
+    const token = localStorage.getItem("foodeli-app-token");
+    await getFavourite(token, { productId: product?._id })
+      .then((res) => {
+        const isFavorite = res.data?.some(
+          (favorite) => favorite._id === product?._id
+        );
+
+        setFavorite(isFavorite);
+
+        setFavoriteLoading(false);
+      })
+      .catch((err) => {
+        setFavoriteLoading(false);
+        dispatch(
+          openSnackbar({
+            message: err.response.data.message,
+            severity: "error",
+          })
+        );
+      });
+  };
+
+  const addCart = async (id) => {
+    const token = localStorage.getItem("foodeli-app-token");
+    await addToCart(token, { productId: id, quantity: 1 })
+      .then((res) => {
+        navigate("/cart");
+      })
+      .catch((err) => {
+        dispatch(
+          openSnackbar({
+            message: err.response.data.message,
+            severity: "error",
+          })
+        );
+      });
+  };
+
+  useEffect(() => {
+    checkFavorite();
+  }, [favorite]);
   return (
     <Card>
       <Top>
-        <Image src="https://media.istockphoto.com/id/520410807/photo/cheeseburger.jpg?s=612x612&w=0&k=20&c=fG_OrCzR5HkJGI8RXBk76NwxxTasMb1qpTVlEM0oyg4=" />
+        <Image src={product?.img} />
         <Menu>
-          <MenuItem>
-            <FavoriteRounded sx={{ fontSize: "20px", color: "red" }} />
+          <MenuItem
+            onClick={() => (favorite ? removeFavourite() : addFavourite())}
+          >
+            {favoriteLoading ? (
+              <>
+                <CircularProgress sx={{ fontSize: "20px" }} />
+              </>
+            ) : (
+              <>
+                {favorite ? (
+                  <FavoriteRounded sx={{ fontSize: "20px", color: "red" }} />
+                ) : (
+                  <FavoriteBorder sx={{ fontSize: "20px" }} />
+                )}
+              </>
+            )}
           </MenuItem>
-          <MenuItem>
+          <MenuItem onClick={() => addCart(product?._id)}>
             <ShoppingBagOutlined sx={{ fontSize: "20px" }} />
           </MenuItem>
         </Menu>
         <Rate>
-          <Rating value={2} sx={{fontSize: "14px"}} />
+          <Rating value={3.5} sx={{fontSize: "14px"}} />
         </Rate>
       </Top>
-      <Details>
-        <Title>Burger</Title>
-        <Desc>Burger desc</Desc>
-        <Price>$12 <Span>$20</Span>
-        <Percent>(20% off)</Percent>
+      <Details onClick={() => navigate(`/dishes/${product._id}`)}>
+        <Title>{product?.name}</Title>
+        <Desc>{product?.desc}</Desc>
+        <Price>₹{product?.price?.org} <Span>₹{product?.price?.mrp}</Span>
+        <Percent>(₹{product?.price?.off}% off)</Percent>
         </Price>
       </Details>
     </Card>

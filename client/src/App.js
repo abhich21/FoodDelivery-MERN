@@ -8,20 +8,23 @@ import Authentication from "./pages/Authentication";
 import Favourites from "./pages/Favourites"
 import Cart from "./pages/Cart"
 import FoodDetails from "./pages/FoodDetails"
-import FoodListing from "./pages/FoodListing"
+import FoodListing from "./pages/FoodListing";
+import { useSelector } from "react-redux";
 
 
 
 
 const Container = styled.div``;
 function App() {
+  const { currentUser } = useSelector((state) => state.user);
+  const { open, message, severity } = useSelector((state) => state.snackbar);
   const [openAuth, setOpenAuth] = useState(false);
 
   return (
     <ThemeProvider theme={lightTheme}>
       <BrowserRouter>
         <Container>
-          <Navbar setOpenAuth={setOpenAuth} openAuth={openAuth} />
+          <Navbar setOpenAuth={setOpenAuth} openAuth={openAuth} currentUser={currentUser} />
           <Routes>
             <Route path="/" exact element={<Home/>} />
             <Route path="/favorite" exact element={<Favourites />} />

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import Button from "../components/Button";
 import {
@@ -7,6 +7,17 @@ import {
   FavoriteRounded,
 } from "@mui/icons-material";
 import { CircularProgress, Rating } from "@mui/material";
+import { useNavigate, useParams } from "react-router-dom";
+import {
+  addToCart,
+  addToFavourite,
+  deleteFromCart,
+  deleteFromFavourite,
+  getFavourite,
+  getProductDetails,
+} from "../api";
+import { openSnackbar } from "../redux/reducers/SnackbarSlice";
+import { useDispatch } from "react-redux";
 
 const Container = styled.div`
   padding: 20px 30px;
@@ -128,35 +139,131 @@ const ButtonWrapper = styled.div`
 `;
 
 const FoodDetails = () => {
+  const { id } = useParams();
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const [favorite, setFavorite] = useState(false);
+  const [favoriteLoading, setFavoriteLoading] = useState(false);
+  const [cartLoading, setCartLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [product, setProduct] = useState();
+
+  const getProduct = async () => {
+    setLoading(true);
+    await getProductDetails(id).then((res) => {
+      setProduct(res.data);
+      setLoading(false);
+    });
+  };
+
+  const removeFavourite = async () => {
+    setFavoriteLoading(true);
+    const token = localStorage.getItem("foodeli-app-token");
+    await deleteFromFavourite(token, { productId: id })
+      .then((res) => {
+        setFavorite(false);
+        setFavoriteLoading(false);
+      })
+      .catch((err) => {
+        setFavoriteLoading(false);
+        dispatch(
+          openSnackbar({
+            message: err.message,
+            severity: "error",
+          })
+        );
+      });
+  };
+
+  const addFavourite = async () => {
+    setFavoriteLoading(true);
+    const token = localStorage.getItem("foodeli-app-token");
+    await addToFavourite(token, { productId: id })
+      .then((res) => {
+        setFavorite(true);
+        setFavoriteLoading(false);
+      })
+      .catch((err) => {
+        setFavoriteLoading(false);
+        dispatch(
+          openSnackbar({
+            message: err.message,
+            severity: "error",
+          })
+        );
+      });
+  };
+
+  const checkFavorite = async () => {
+    setFavoriteLoading(true);
+    const token = localStorage.getItem("foodeli-app-token");
+    await getFavourite(token, { productId: id })
+      .then((res) => {
+        const isFavorite = res.data?.some((favorite) => favorite._id === id);
+
+        setFavorite(isFavorite);
+
+        setFavoriteLoading(false);
+      })
+      .catch((err) => {
+        setFavoriteLoading(false);
+        dispatch(
+          openSnackbar({
+            message: err.message,
+            severity: "error",
+          })
+        );
+      });
+  };
+
+  useEffect(() => {
+    getProduct();
+    checkFavorite();
+  }, []);
+
+  const addCart = async () => {
+    setCartLoading(true);
+    const token = localStorage.getItem("foodeli-app-token");
+    await addToCart(token, { productId: id, quantity: 1 })
+      .then((res) => {
+        setCartLoading(false);
+        navigate("/cart");
+      })
+      .catch((err) => {
+        setCartLoading(false);
+        dispatch(
+          openSnackbar({
+            message: err.message,
+            severity: "error",
+          })
+        );
+      });
+  };
   return (
     <Container>
+      {loading ? (
+        <CircularProgress />
+       ) : ( 
       <Wrapper>
         <ImagesWrapper>
-          <Image src="https://media.istockphoto.com/id/1280147779/photo/chicken-curry-iftari.jpg?s=612x612&w=0&k=20&c=THJNS9HlSd41bMK07p8fltRYbt_ez8Tdu7YHEm2xtZs=" />
+          <Image src={product?.img} />
         </ImagesWrapper>
         <Details>
           <div>
-            <Title>Chicken Curry</Title>
+            <Title>{product?.name}</Title>
           </div>
           <Rating value={3.5} />
           <Price>
-            ₹150<Span>₹200</Span> <Percent>25% off</Percent>
+            ₹{product?.price?.org}<Span>₹{product?.price?.mrp}</Span>{" "}
+            <Percent>(₹{product?.price?.off}% Off)</Percent>
           </Price>
-          <Desc>
-            A flavorful Indian dish featuring tender chicken simmered in a rich,
-            aromatic sauce bursting with vibrant spices like cumin, coriander,
-            and turmeric.
-          </Desc>
+          <Desc>{product?.desc}</Desc>
           <Ingridents>
-              Ingridents
+              Ingredients
               <Items>
-                  <Item>Chicken</Item>
-                  <Item>Onions</Item>
-                  <Item>Tomatoes</Item>
-                  <Item>Ginger-Garlic Paste</Item>
-                  <Item>Spices</Item>
-                  <Item>Cooking Oil</Item>
-                  <Item>Cilantro (optional)</Item>
+                {product?.ingredients.map((ingredient) => (
+                  <Item>{ingredient}</Item>
+                ))}
               </Items>
             </Ingridents>
             <ButtonWrapper>
@@ -164,18 +271,27 @@ const FoodDetails = () => {
                 text="Add to Cart"
                 full
                 outlined
+                isLoading={cartLoading}
+                onClick={() => addCart()}
               />
               <Button text="Order Now" full />
               <Button
                 leftIcon={
+                  favorite ? (
                     <FavoriteRounded sx={{ fontSize: "22px", color: "red" }} />
+                  ) : (
+                    <FavoriteBorderOutlined sx={{ fontSize: "22px" }} />
+                  )
                 }
                 full
                 outlined
+                isLoading={favoriteLoading}
+                onClick={() => (favorite ? removeFavourite() : addFavourite())}
               />
             </ButtonWrapper>
         </Details>
       </Wrapper>
+       )}
     </Container>
   );
 };
